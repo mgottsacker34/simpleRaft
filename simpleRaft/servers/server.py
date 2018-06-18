@@ -39,9 +39,12 @@ class Server(object):
         self._messageBoard.post_message(message)
 
     def on_message(self, message):
-        state, response = self._state.on_message(message)
-
-        self._state = state
+        # if message is not None:
+        try:
+            state, response = self._state.on_message(message)
+            self._state = state
+        except:
+            pass
 
 
 class ZeroMQServer(Server):

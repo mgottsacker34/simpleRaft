@@ -1,4 +1,8 @@
 from .voter import Voter
+import hashlib
+import sys
+import time
+from struct import unpack, pack
 
 
 class Follower(Voter):
@@ -76,7 +80,12 @@ class Follower(Voter):
                     #   Is this a heartbeat?
                     if(len(data["entries"]) > 0):
                         for e in data["entries"]:
+                            # print(e["value"])
                             log.append(e)
+                            if(e["value"]):
+                                if(e["value"] == 999):
+                                    self.computeNewAddr(e["addr"])
+
                             self._server._commitIndex += 1
 
                         self._server._lastLogIndex = len(log) - 1
@@ -89,3 +98,40 @@ class Follower(Voter):
             return self, None
         else:
             return self, None
+
+    def computeNewAddr(self, addr):
+
+        print("Server", self._server._name, ": Computing new address from", addr, "...")
+
+        timestamp = str(time.time())
+        message = addr
+        nonce = 0
+        guess = 99999999999999999999
+        payload = (timestamp + message).encode('utf-8')
+        throttle = 100000
+        target = 2**64 / throttle
+
+        payloadHash = hashlib.sha512(payload).digest()
+
+        start = time.time()
+        while guess > target:
+            nonce += 1
+            guess, = unpack('>Q',hashlib.sha512(hashlib.sha512(pack('>Q',nonce) + payloadHash).digest()).digest()[0:8])
+
+        end = time.time()
+
+        print("{0}:{1}:{2}:{3}:{4}:{5}:{6}".format(timestamp, message, nonce, guess, payload, target, end-start))
+
+
+
+
+        # complete = False
+        # n = 0
+        # while complete == False:
+        #     curr_string = addr + str(n)
+        #     curr_hash = md5.new(curr_string).hexdigest()
+        #     n = n+1
+        #
+        #     if curr_hash.startswith('0000'):
+        #         print("Server", self._server._name, "found hash.\nHash:", curr_hash, "\nString:", curr_string)
+        #         complete = True

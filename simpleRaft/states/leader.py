@@ -41,6 +41,9 @@ class Leader(State):
                     "leaderCommit": self._server._commitIndex,
                 })
 
+            # print("Current",current)
+            # if(current["value"] == 999):
+                # print("Computing new address.");
             self._send_response_message(appendEntry)
         else:
             # The last append was good so increase their index.

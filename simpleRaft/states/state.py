@@ -16,7 +16,8 @@ class State(object):
         that this state reacts to.
 
         """
-        _type = message.type
+        
+        _type = message._type
 
         if(message.term > self._server._currentTerm):
             self._server._currentTerm = message.term
@@ -35,6 +36,8 @@ class State(object):
             return self.on_vote_received(message)
         elif(_type == BaseMessage.Response):
             return self.on_response_received(message)
+        elif(_type == BaseMessage.RequestAddressChange):
+            return self.on_addr_change_request(message)
 
     def on_leader_timeout(self, message):
         """This is called when the leader timeout is reached."""
@@ -48,8 +51,13 @@ class State(object):
     def on_append_entries(self, message):
         """This is called when there is a request to
         append an entry to the log.
-
         """
+
+    def on_addr_change_request(self, message):
+        """This is called when there is a request to
+        change an address.
+        """
+        print("on_addr_change_request")
 
     def on_response_received(self, message):
         """This is called when a response is sent back to the Leader"""
